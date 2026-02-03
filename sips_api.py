@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SIPS API - Wrapper REST para el SIPS Client
-============================================
-API REST simple que expone el SIPS Client para ser consumido por n8n
+SIPS API - Wrapper REST para el SIPS Client (versión CRM)
+=========================================================
+API REST que expone el SIPS Client adaptado para el CRM de Aenergetic
 
 Endpoints:
     GET  /sips/<cups>                - Obtener histórico SIPS
@@ -15,7 +15,7 @@ Fecha: 2026-02-03
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from sips_client import SIPSClient
+from sips_client_crm import SIPSClient
 import os
 from datetime import datetime
 
@@ -40,7 +40,7 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'ok',
-        'service': 'SIPS API',
+        'service': 'SIPS API (CRM version)',
         'timestamp': datetime.now().isoformat(),
         'version': '1.0.0'
     })
@@ -53,18 +53,14 @@ def get_sips_by_cups(cups):
     
     Query params:
         - invoice_id: ID de factura (opcional)
-        - months: Número de meses (default: 12)
-        - optimize_p6: true/false (default: false)
         - save: true/false - guardar en CouchDB (default: true)
     
     Ejemplo:
-        GET /sips/ES0031406091590001JF0F?months=12&invoice_id=12345
+        GET /sips/ES0031406091590001JF0F?invoice_id=12345
     """
     try:
         # Parsear parámetros
         invoice_id = request.args.get('invoice_id', type=int)
-        months = request.args.get('months', default=12, type=int)
-        optimize_p6 = request.args.get('optimize_p6', default='false').lower() == 'true'
         save_to_couch = request.args.get('save', default='true').lower() == 'true'
         
         # Validar CUPS
@@ -81,8 +77,6 @@ def get_sips_by_cups(cups):
         sips_data = client.get_sips_history(
             cups=cups,
             invoice_id=invoice_id,
-            months=months,
-            optimize_p6=optimize_p6,
             save_to_couch=save_to_couch
         )
         
@@ -95,7 +89,7 @@ def get_sips_by_cups(cups):
         else:
             return jsonify({
                 'success': False,
-                'error': 'No se encontraron datos para el CUPS',
+                'error': 'No se encontraron datos SIPS en la caché',
                 'cups': cups
             }), 404
             
@@ -115,8 +109,6 @@ def get_sips_post():
         {
             "cups": "ES0031406091590001JF0F",
             "invoice_id": 12345,         // opcional
-            "months": 12,                // opcional, default: 12
-            "optimize_p6": false,        // opcional, default: false
             "save": true                 // opcional, default: true
         }
     
@@ -135,8 +127,6 @@ def get_sips_post():
         
         cups = data.get('cups')
         invoice_id = data.get('invoice_id')
-        months = data.get('months', 12)
-        optimize_p6 = data.get('optimize_p6', False)
         save_to_couch = data.get('save', True)
         
         # Validar CUPS
@@ -153,8 +143,6 @@ def get_sips_post():
         sips_data = client.get_sips_history(
             cups=cups,
             invoice_id=invoice_id,
-            months=months,
-            optimize_p6=optimize_p6,
             save_to_couch=save_to_couch
         )
         
@@ -167,7 +155,7 @@ def get_sips_post():
         else:
             return jsonify({
                 'success': False,
-                'error': 'No se encontraron datos para el CUPS',
+                'error': 'No se encontraron datos SIPS en la caché',
                 'cups': cups
             }), 404
             
@@ -189,7 +177,6 @@ def get_sips_batch():
                 {"cups": "ES...", "invoice_id": 123},
                 {"cups": "ES...", "invoice_id": 124}
             ],
-            "months": 12,
             "save": true
         }
     """
@@ -202,7 +189,6 @@ def get_sips_batch():
             }), 400
         
         cups_list = data['cups_list']
-        months = data.get('months', 12)
         save_to_couch = data.get('save', True)
         
         client = get_client()
@@ -223,7 +209,6 @@ def get_sips_batch():
             sips_data = client.get_sips_history(
                 cups=cups,
                 invoice_id=invoice_id,
-                months=months,
                 save_to_couch=save_to_couch
             )
             
@@ -277,7 +262,7 @@ if __name__ == '__main__':
     debug = os.getenv('API_DEBUG', 'false').lower() == 'true'
     
     print("\n" + "="*60)
-    print("🚀 SIPS API - Iniciando servidor")
+    print("🚀 SIPS API (CRM) - Iniciando servidor")
     print("="*60)
     print(f"Host: {host}")
     print(f"Port: {port}")
