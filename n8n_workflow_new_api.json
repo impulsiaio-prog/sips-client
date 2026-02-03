@@ -1,0 +1,130 @@
+{
+  "name": "SIPS + CUPS (NEW API)",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "invoice_id"
+            },
+            {
+              "name": "cups"
+            },
+            {
+              "name": "source"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        384
+      ],
+      "id": "58cdc76c-2c0a-4cd9-8d88-a82e688fd05d",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5000/sips",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"cups\": \"{{ $json.cups }}\",\n  \"invoice_id\": {{ $json.invoice_id || 'null' }},\n  \"months\": 12,\n  \"optimize_p6\": false,\n  \"save\": true\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "267105be-45c5-4a99-afb7-d586a4827b1c",
+      "name": "Call Local SIPS API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        688,
+        384
+      ],
+      "alwaysOutputData": true,
+      "notes": "Consulta la API local Python para obtener datos SIPS"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// EXTRACT SIPS RESPONSE\n// ============================================\n\nconst apiResponse = $json;\nconst inputData = $('When Executed by Another Workflow').item.json;\n\n// Validar respuesta\nif (!apiResponse.success) {\n  throw new Error(`API Error: ${apiResponse.error || 'Unknown error'}`);\n}\n\nconst sipsData = apiResponse.data;\n\nif (!sipsData) {\n  throw new Error('No SIPS data in response');\n}\n\nconsole.log(`✅ SIPS data retrieved for CUPS: ${sipsData.cups}`);\nconsole.log(`   - Records: ${sipsData.records_found}`);\nconsole.log(`   - Periods: ${sipsData.periods.join(', ')}`);\nconsole.log(`   - Saved to CouchDB: ${apiResponse.saved_to_couchdb}`);\n\nconst result = {\n  success: true,\n  cups: sipsData.cups,\n  invoice_id: inputData.invoice_id,\n  records_found: sipsData.records_found,\n  periods: sipsData.periods,\n  current_powers: sipsData.current_powers,\n  saved_to_couchdb: apiResponse.saved_to_couchdb,\n  consulted_at: sipsData.consulted_at\n};\n\nreturn [{ json: result }];"
+      },
+      "id": "ee836dc6-ae96-4881-bb3d-0ff86acae165",
+      "name": "Extract Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        384
+      ],
+      "notes": "Extrae y valida la respuesta de la API"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// LOG SUCCESS\n// ============================================\n\nconst result = $json;\n\nconsole.log('✅ SIPS workflow completed:');\nconsole.log(JSON.stringify(result, null, 2));\n\nreturn [{ json: result }];"
+      },
+      "id": "c854180f-b541-4998-ba3b-f3f47f99868a",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        384
+      ],
+      "notes": "Registra el éxito de la operación"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Call Local SIPS API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Local SIPS API": {
+      "main": [
+        [
+          {
+            "node": "Extract Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Response": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "SIPS"
+    },
+    {
+      "name": "CUPS"
+    },
+    {
+      "name": "LOCAL API"
+    }
+  ]
+}

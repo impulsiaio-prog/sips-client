@@ -1,0 +1,27 @@
+# ===============================================
+# SIPS CLIENT - CONFIGURACIÓN
+# ===============================================
+# Copia este archivo a .env y configura tus credenciales
+
+# ===============================================
+# MySQL (Base de datos IGNIS)
+# ===============================================
+IGNIS_DB_HOST=localhost
+IGNIS_DB_USER=root
+IGNIS_DB_PASSWORD=tu_password_mysql_aqui
+IGNIS_DB_NAME=ignis
+
+# ===============================================
+# CouchDB
+# ===============================================
+COUCHDB_URL=https://couchdb.aenergetic.app
+COUCHDB_USER=admin
+COUCHDB_PASSWORD=7fGT1Lxk0fcRX6LnVqdFq97mawaMx797MclOJHeuTIU=
+COUCHDB_DATABASE=sips_history
+
+# ===============================================
+# API REST (Opcional)
+# ===============================================
+API_HOST=0.0.0.0
+API_PORT=5000
+API_DEBUG=false
