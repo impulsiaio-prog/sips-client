@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  sips-api:
+    build: .
+    container_name: sips-api
+    restart: unless-stopped
+    
+    ports:
+      - "5000:5000"
+    
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=5000
+      - API_DEBUG=false
+    
+    env_file:
+      - .env
+    
+    # Si n8n está en una red Docker específica, descomentar y ajustar:
+    # networks:
+    #   - n8n-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    
+    # Logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Si n8n está en una red externa:
+# networks:
+#   n8n-network:
+#     external: true
+
+# Para crear una red compartida nueva:
+# networks:
+#   n8n-network:
+#     driver: bridge
