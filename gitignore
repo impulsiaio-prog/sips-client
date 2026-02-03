@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Configuración sensible
+.env
+*.env
+!.env.example
+credentials.json
+config_local.php
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporales
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# n8n
+.n8n/
+
+# Node (si usas npm)
+node_modules/
+package-lock.json
